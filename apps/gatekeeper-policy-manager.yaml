@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    chart: gpm
+    chart: gatekeeper-policy-manager
     repoURL: https://sighupio.github.io/gatekeeper-policy-manager
     targetRevision: 0.10.0
     helm:
