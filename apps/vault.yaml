@@ -86,8 +86,7 @@ metadata:
   name: init-vault-cluster
   namespace: vault
   annotations:
-    argocd.argoproj.io/sync-wave: "-3"
-    # argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/sync-wave: "-2"
 spec:
   template:
     spec:
