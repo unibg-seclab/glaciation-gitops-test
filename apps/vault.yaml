@@ -105,7 +105,7 @@ spec:
           function unseal {
               head -n $THRESHOLD /vault/cluster-keys |
               while read line; do
-                vault operator unseal -ca-cert=/etc/ssl/certs/ca.crt -address=https://$1.vault-internal:8200 $line; # > /dev/null
+                vault operator unseal -address=https://$1.vault-internal:8200 $line;
               done
           }
 
@@ -113,14 +113,14 @@ spec:
           # TODO: Use the kubectl CLI command to do this
           sleep 30
           # TODO: Persist PGP encrypted Vault unseal keys somewhere outside the cluster
-          vault operator init -ca-cert=/etc/ssl/certs/ca.crt -address=https://vault-0.vault-internal:8200 -key-shares=$SHARES -key-threshold=$THRESHOLD -format=json > /vault/response.json
+          vault operator init -address=https://vault-0.vault-internal:8200 -key-shares=$SHARES -key-threshold=$THRESHOLD -format=json > /vault/response.json
           cat /vault/response.json
           # Extract unseal keys from the JSON response
           awk '/"unseal_keys_b64": \[/{flag=1;next}/\]/{flag=0}flag' /vault/response.json | sed -n 's/\s*"\(.*\)".*/\1/p' > /vault/cluster-keys
           unseal vault-0
-          vault operator raft join -ca-cert=/etc/ssl/certs/ca.crt -address=https://vault-1.vault-internal:8200 -leader-ca-cert="$(cat /vault/userconfig/vault-tls/ca.crt)" -leader-client-cert="$(cat /vault/userconfig/vault-tls/tls.crt)" -leader-client-key="$(cat /vault/userconfig/vault-tls/tls.key)" https://vault-0.vault-internal:8200 # > /dev/null
+          vault operator raft join -address=https://vault-1.vault-internal:8200 -leader-ca-cert="$(cat /vault/userconfig/vault-tls/ca.crt)" -leader-client-cert="$(cat /vault/userconfig/vault-tls/tls.crt)" -leader-client-key="$(cat /vault/userconfig/vault-tls/tls.key)" https://vault-0.vault-internal:8200
           unseal vault-1
-          vault operator raft join -ca-cert=/etc/ssl/certs/ca.crt -address=https://vault-2.vault-internal:8200 -leader-ca-cert="$(cat /vault/userconfig/vault-tls/ca.crt)" -leader-client-cert="$(cat /vault/userconfig/vault-tls/tls.crt)" -leader-client-key="$(cat /vault/userconfig/vault-tls/tls.key)" https://vault-0.vault-internal:8200 # > /dev/null
+          vault operator raft join -address=https://vault-2.vault-internal:8200 -leader-ca-cert="$(cat /vault/userconfig/vault-tls/ca.crt)" -leader-client-cert="$(cat /vault/userconfig/vault-tls/tls.crt)" -leader-client-key="$(cat /vault/userconfig/vault-tls/tls.key)" https://vault-0.vault-internal:8200
           unseal vault-2
         securityContext:
           runAsUser: 100
