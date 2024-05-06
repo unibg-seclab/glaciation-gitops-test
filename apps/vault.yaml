@@ -4,8 +4,8 @@ metadata:
   name: vault
   annotations:
     argocd.argoproj.io/sync-wave: "-3"
-  # labels:
-  #   create-ca-bundle: "true"
+  labels:
+    create-ca-bundle: "true"
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -78,3 +78,77 @@ spec:
       selfHeal: true
     syncOptions:
       - ServerSideApply=true
+---
+# Initialize the HA Vault cluster
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-vault-cluster
+  namespace: vault
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
+    # argocd.argoproj.io/hook: PostSync
+spec:
+  template:
+    spec:
+      containers:
+      - name: vault
+        image: hashicorp/vault:1.16.1
+        env:
+        - name: "SHARES"
+          value: "5"
+        - name: "THRESHOLD"
+          value: "3"
+        command:
+        - /bin/sh
+        - -c
+        - |
+          function unseal {
+              head -n $THRESHOLD /vault/cluster-keys |
+              while read line; do
+                echo "$line";
+                vault operator unseal -ca-cert=/etc/ssl/certs/ca.crt -address=https://$1.vault-internal:8200 $line; # > /dev/null
+              done
+          }
+
+          vault operator init -ca-cert=/etc/ssl/certs/ca.crt -address=https://vault-0.vault-internal:8200 -key-shares=$SHARES -key-threshold=$THRESHOLD -format=json > /vault/response.json
+          # Extract unseal keys from the JSON response
+          awk '/"unseal_keys_b64": \[/{flag=1;next}/\]/{flag=0}flag' /vault/response.json | sed -n 's/\s*"\(.*\)".*/\1/p' > /vault/cluster-keys
+          unseal vault-0
+          vault operator raft join -ca-cert=/etc/ssl/certs/ca.crt -address=https://vault-1.vault-internal:8200 -leader-ca-cert="$(cat /vault/userconfig/vault-tls/ca.crt)" -leader-client-cert="$(cat /vault/userconfig/vault-tls/tls.crt)" -leader-client-key="$(cat /vault/userconfig/vault-tls/tls.key)" https://vault-0.vault-internal:8200 # > /dev/null
+          unseal vault-1
+          vault operator raft join -ca-cert=/etc/ssl/certs/ca.crt -address=https://vault-2.vault-internal:8200 -leader-ca-cert="$(cat /vault/userconfig/vault-tls/ca.crt)" -leader-client-cert="$(cat /vault/userconfig/vault-tls/tls.crt)" -leader-client-key="$(cat /vault/userconfig/vault-tls/tls.key)" https://vault-0.vault-internal:8200 # > /dev/null
+          unseal vault-2
+        securityContext:
+          runAsUser: 100
+          runAsGroup: 1000
+          privileged: false
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - mountPath: /etc/ssl/certs/ca.crt
+          subPath: ca.crt
+          name: ca-bundle
+          readOnly: true
+        - mountPath: /vault/userconfig/vault-tls
+          name: userconfig-vault-tls
+          readOnly: true
+      restartPolicy: Never
+      securityContext:
+        runAsUser: 100
+        runAsGroup: 1000
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: ca-bundle
+        configMap:
+          defaultMode: 422
+          name: ca-bundle
+      - name: userconfig-vault-tls
+        secret:
+          defaultMode: 420
+          secretName: vault-tls
+  backoffLimit: 1
