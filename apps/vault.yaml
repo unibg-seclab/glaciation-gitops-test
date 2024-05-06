@@ -86,7 +86,7 @@ metadata:
   name: init-vault-cluster
   namespace: vault
   annotations:
-    argocd.argoproj.io/sync-wave: "-2"
+    argocd.argoproj.io/sync-wave: "-3"
 spec:
   template:
     spec:
@@ -105,12 +105,16 @@ spec:
           function unseal {
               head -n $THRESHOLD /vault/cluster-keys |
               while read line; do
-                echo "$line";
                 vault operator unseal -ca-cert=/etc/ssl/certs/ca.crt -address=https://$1.vault-internal:8200 $line; # > /dev/null
               done
           }
 
+          # Wait for the startup of the Vault pods
+          # TODO: Use the kubectl CLI command to do this
+          sleep 30
+          # TODO: Persist PGP encrypted Vault unseal keys somewhere outside the cluster
           vault operator init -ca-cert=/etc/ssl/certs/ca.crt -address=https://vault-0.vault-internal:8200 -key-shares=$SHARES -key-threshold=$THRESHOLD -format=json > /vault/response.json
+          cat /vault/response.json
           # Extract unseal keys from the JSON response
           awk '/"unseal_keys_b64": \[/{flag=1;next}/\]/{flag=0}flag' /vault/response.json | sed -n 's/\s*"\(.*\)".*/\1/p' > /vault/cluster-keys
           unseal vault-0
