@@ -1,0 +1,93 @@
+global:
+  enabled: true
+  tlsDisable: false
+injector:
+  enabled: false
+server:
+  enabled: true
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 250m
+    limits:
+      memory: 256Mi
+      cpu: 250m
+  extraEnvironmentVars:
+    VAULT_CACERT: /vault/userconfig/vault-tls/ca.crt
+    VAULT_TLSCERT: /vault/userconfig/vault-tls/tls.crt
+    VAULT_TLSKEY: /vault/userconfig/vault-tls/tls.key
+  volumes:
+    - name: userconfig-vault-tls
+      secret:
+        defaultMode: 420
+        secretName: vault-tls
+  volumeMounts:
+    - mountPath: /vault/userconfig/vault-tls
+      name: userconfig-vault-tls
+      readOnly: true
+  standalone:
+    enabled: false
+  service:
+    enabled: true
+    type: NodePort
+    active:
+      enabled: false
+    standby:
+      enabled: false
+  dataStorage:
+    enabled: true
+    size: 10Gi
+  auditStorage:
+    enabled: true
+    size: 10Gi
+  ui:
+    enabled: true
+    serviceType: NodePort
+  affinity: ""
+  ha:
+    enabled: true
+    replicas: 3
+    raft:
+      enabled: true
+      setNodeId: true
+      config: |
+        disable_mlock = true
+        ui = true
+
+        listener "tcp" {
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+          tls_cert_file = "/vault/userconfig/vault-tls/tls.crt"
+          tls_key_file  = "/vault/userconfig/vault-tls/tls.key"
+          tls_client_ca_file = "/vault/userconfig/vault-tls/ca.crt"
+        }
+
+        storage "raft" {
+          path = "/vault/data"
+        }
+
+        service_registration "kubernetes" {}
+  # Workaround for https://github.com/kubernetes/examples/issues/260
+  extraInitContainers:
+    - name: chown
+      image: alpine
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsUser: 0 # root
+      command: [sh, -c]
+      args:
+        - chown -R 100:1000 /vault/data # uid=vault, gid=vault
+      volumeMounts:
+        - name: data
+          mountPath: /vault/data/
+  # Allow executing the init container with root privileges
+  statefulSet:
+    securityContext:
+      pod:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: false
+        runAsUser: 100
+      container:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
