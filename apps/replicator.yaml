@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: replicator
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-4"
+  finalizers:
+   - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    chart: kubernetes-replicator
+    repoURL: https://helm.mittwald.de
+    targetRevision: 2.9.2
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: replicator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
