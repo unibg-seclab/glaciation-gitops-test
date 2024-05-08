@@ -11,6 +11,7 @@ helm install \
     --set configs.repositories[0].type=git \
     --set configs.repositories[0].url=https://github.com/unibg-seclab/glaciation-gitops-test.git \
     --set server.service.type=NodePort \
+    --values values/argo-cd-values.yaml \
     my-release argo/argo-cd
 
 echo -e '\nWaiting for the rollout of the service...'
