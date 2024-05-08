@@ -16,7 +16,7 @@ metadata:
   namespace: cert-manager
   annotations:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
-    argocd.argoproj.io/sync-wave: "-4" # depends on cert-manager
+    argocd.argoproj.io/sync-wave: "-4" # depends on self-signed issuer
 spec:
   isCA: true
   commonName: my-selfsigned-ca
@@ -35,7 +35,7 @@ metadata:
   name: my-ca-issuer
   annotations:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
-    argocd.argoproj.io/sync-wave: "-4" # depends on cert-manager
+    argocd.argoproj.io/sync-wave: "-4" # depends on root certificate
 spec:
   ca:
     secretName: root-secret
@@ -48,7 +48,7 @@ metadata:
   name: ca-bundle
   annotations:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
-    argocd.argoproj.io/sync-wave: "-3" # depends on trust-manager
+    argocd.argoproj.io/sync-wave: "-3" # depends on trust-manager and root certificate
 spec:
   sources:
   # Include a bundle of publicly trusted certificates which can be
