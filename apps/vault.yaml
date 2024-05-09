@@ -18,7 +18,7 @@ metadata:
 spec:
   secretName: vault-tls
   issuerRef:
-    name: my-ca-issuer
+    name: private-ca-issuer
     kind: ClusterIssuer
     group: cert-manager.io
   duration: 2160h # 90d
