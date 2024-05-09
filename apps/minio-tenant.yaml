@@ -153,19 +153,26 @@ metadata:
   namespace: minio-tenant
   annotations:
     argocd.argoproj.io/sync-wave: "-2" # depends on MinIO tenant
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: nginx
+  tls:
+  - hosts:
+    - glaciation-tenant.integration
+    secretName: minio-tenant-ingress
   rules:
   - host: glaciation-tenant.integration
     http:
       paths:
-      - backend:
-          service:
-            name: minio
-            port:
-              name: http-minio
-        path: /
+      - path: /
         pathType: Prefix
+        backend:
+            service:
+              name: minio
+              port:
+                number: 443
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -174,16 +181,23 @@ metadata:
   namespace: minio-tenant
   annotations:
     argocd.argoproj.io/sync-wave: "-2" # depends on MinIO tenant
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: nginx
+  tls:
+  - hosts:
+    - glaciation-tenant-console.integration
+    secretName: minio-tenant-console-ingress
   rules:
   - host: glaciation-tenant-console.integration
     http:
       paths:
-      - backend:
-          service:
-            name: glaciation-console
-            port:
-              name: http-console
-        path: /
+      - path: /
         pathType: Prefix
+        backend:
+          service:
+            name: tenant-console
+            port:
+              number: 9443
