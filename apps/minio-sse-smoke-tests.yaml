@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: minio-smoke-test-
+  namespace: minio-tenant
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  template:
+    spec:
+      containers:
+      - name: kubectl
+        image: quay.io/minio/minio:RELEASE.2024-03-15T01-07-19Z
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -x;  # enable printing the command before execution (in the sub-shell)
+          mc alias set minio https://minio.minio-tenant.svc.cluster.local minio minio123;
+          mc mb minio/test-encrypted-bucket; #
+          mc encrypt set sse-kms encryption-key minio/test-encrypted-bucket;
+          mc ls minio;
+          echo "This is a line of text" > /tmp/test-object;
+          mc mv /tmp/test-object minio/test-encrypted-bucket;
+          mc ls minio/test-encrypted-bucket;
+          mc cat minio/test-encrypted-bucket/test-object
+        securityContext:
+          privileged: false
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - mountPath: /etc/ssl/certs/ca.crt
+          subPath: ca.crt
+          name: ca-bundle
+          readOnly: true
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: ca-bundle
+        configMap:
+          defaultMode: 422
+          name: ca-bundle
+  backoffLimit: 1
