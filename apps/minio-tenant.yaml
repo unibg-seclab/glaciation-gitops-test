@@ -3,6 +3,8 @@ kind: Secret
 metadata:
   name: glaciation-env-configuration
   namespace: minio-tenant
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
 type: Opaque
 stringData:
   config.env: |-
@@ -14,6 +16,8 @@ kind: Secret
 metadata:
   name: kes-configuration
   namespace: minio-tenant
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
 type: Opaque
 stringData:
   server-config.yaml: |-
@@ -47,10 +51,13 @@ stringData:
 apiVersion: minio.min.io/v2
 kind: Tenant
 metadata:
-  labels:
-    app: minio
   name: tenant
   namespace: minio-tenant
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "-2" # depends on MinIO operator and Vault
+  labels:
+    app: minio
 spec:
   configuration:
     name: glaciation-env-configuration
@@ -144,6 +151,8 @@ kind: Ingress
 metadata:
   name: minio-tenant-api
   namespace: minio-tenant
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2" # depends on MinIO tenant
 spec:
   ingressClassName: nginx
   rules:
@@ -163,6 +172,8 @@ kind: Ingress
 metadata:
   name: minio-tenant-console
   namespace: minio-tenant
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2" # depends on MinIO tenant
 spec:
   ingressClassName: nginx
   rules:
