@@ -88,10 +88,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "-3" # depends on Vault namespace
 data:
   kes-policy.hcl: |
-    path "kv/data/myminio/*" {
+    path "kv/data/minio-tenant/*" {
       capabilities = [ "create", "read" ]
     }
-    path "kv/metadata/myminio/*" {
+    path "kv/metadata/minio-tenant/*" {
       capabilities = [ "list", "delete" ]
     }
 ---

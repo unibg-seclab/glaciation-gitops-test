@@ -16,7 +16,7 @@ spec:
   source:
     repoURL: https://operator.min.io
     chart: operator
-    targetRevision: 5.0.13
+    targetRevision: 5.0.14
     helm:
       valuesObject:
         console:
