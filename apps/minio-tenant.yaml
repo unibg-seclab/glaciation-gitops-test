@@ -3,6 +3,8 @@ kind: Secret
 metadata:
   name: glaciation-env-configuration
   namespace: minio-tenant
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 type: Opaque
 stringData:
   config.env: |-
@@ -14,6 +16,8 @@ kind: Secret
 metadata:
   name: kes-configuration
   namespace: minio-tenant
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 type: Opaque
 stringData:
   server-config.yaml: |-
@@ -51,6 +55,7 @@ metadata:
   namespace: minio-tenant
   annotations:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "-1"
   labels:
     app: minio
 spec:
