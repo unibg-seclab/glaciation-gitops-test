@@ -56,9 +56,6 @@ metadata:
 spec:
   configuration:
     name: glaciation-env-configuration
-  exposeServices:
-    console: true
-    minio: true
   features:
     bucketDNS: false
     enableSFTP: false
