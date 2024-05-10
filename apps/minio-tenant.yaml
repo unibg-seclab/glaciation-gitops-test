@@ -3,8 +3,6 @@ kind: Secret
 metadata:
   name: glaciation-env-configuration
   namespace: minio-tenant
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
 type: Opaque
 stringData:
   config.env: |-
@@ -16,8 +14,6 @@ kind: Secret
 metadata:
   name: kes-configuration
   namespace: minio-tenant
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
 type: Opaque
 stringData:
   server-config.yaml: |-
@@ -55,7 +51,6 @@ metadata:
   namespace: minio-tenant
   annotations:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
-    argocd.argoproj.io/sync-wave: "-2" # depends on MinIO operator and Vault
   labels:
     app: minio
 spec:
@@ -152,7 +147,6 @@ metadata:
   name: minio-tenant-api
   namespace: minio-tenant
   annotations:
-    argocd.argoproj.io/sync-wave: "-2" # depends on MinIO tenant
     # NOTE: To make sure the certificate is trusted by clients we should use
     # something like Let's Encrypt
     cert-manager.io/cluster-issuer: "private-ca-issuer"
@@ -182,7 +176,6 @@ metadata:
   name: minio-tenant-console
   namespace: minio-tenant
   annotations:
-    argocd.argoproj.io/sync-wave: "-2" # depends on MinIO tenant
     # NOTE: To make sure the certificate is trusted by clients we should use
     # something like Let's Encrypt
     cert-manager.io/cluster-issuer: "private-ca-issuer"
