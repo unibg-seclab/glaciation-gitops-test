@@ -51,7 +51,7 @@ spec:
       volumes:
       - name: minio-credentials
         secret:
-          defaultMode: 0755
+          defaultMode: 422
           secretName: glaciation-env-configuration
       - name: ca-bundle
         configMap:
