@@ -16,8 +16,9 @@ spec:
         - /bin/sh
         - -c
         - |
+          source /tmp/config.env;
           set -x;  # enable printing the command before execution (in the sub-shell)
-          mc alias set minio https://minio.minio-tenant.svc.cluster.local minio minio123;
+          mc alias set minio https://minio.minio-tenant.svc.cluster.local $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD;
           mc mb minio/test-encrypted-bucket;
           mc encrypt set sse-kms encryption-key minio/test-encrypted-bucket;
           mc ls minio;
@@ -34,6 +35,10 @@ spec:
             drop:
               - ALL
         volumeMounts:
+        - mountPath: /tmp/config.env
+          subPath: config.env
+          name: minio-credentials
+          readOnly: true
         - mountPath: /etc/ssl/certs/ca.crt
           subPath: ca.crt
           name: ca-bundle
@@ -44,6 +49,10 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       volumes:
+      - name: minio-credentials
+        secret:
+          defaultMode: 0755
+          secretName: glaciation-env-configuration
       - name: ca-bundle
         configMap:
           defaultMode: 422
