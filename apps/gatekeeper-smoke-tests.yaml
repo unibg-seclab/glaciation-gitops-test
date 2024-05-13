@@ -45,7 +45,7 @@ roleRef:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: gatekeeper-smoke-test-
+  name: gatekeeper-smoke-test
   namespace: gatekeeper-system
   annotations:
     argocd.argoproj.io/hook: PostSync
