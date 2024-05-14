@@ -29,7 +29,6 @@ server:
     enabled: false
   service:
     enabled: true
-    type: NodePort
     active:
       enabled: false
     standby:
@@ -44,7 +43,6 @@ server:
     storageClass: local-path
   ui:
     enabled: true
-    serviceType: NodePort
   affinity: ""
   ha:
     enabled: true

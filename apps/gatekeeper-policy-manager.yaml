@@ -13,8 +13,6 @@ spec:
     targetRevision: 0.10.0
     helm:
       parameters:
-        - name: service.type
-          value: NodePort
         - name: config.secretKey
           value: supersecuresecretkey
   destination:
