@@ -43,6 +43,22 @@ server:
     storageClass: local-path
   ui:
     enabled: true
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      # NOTE: To make sure the certificate is trusted by clients we should use
+      # something like Let's Encrypt
+      cert-manager.io/cluster-issuer: "private-ca-issuer"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    tls:
+    - hosts:
+      - vault.integration
+      secretName: vault-ingress
+    hosts:
+    - host: vault.integration
+    activeService: false
   affinity: ""
   ha:
     enabled: true

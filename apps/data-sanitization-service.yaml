@@ -153,3 +153,30 @@ spec:
   ports:
     - port: 80
       targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: data-sanitization
+  namespace: spark-app
+  annotations:
+    # NOTE: To make sure the certificate is trusted by clients we should use
+    # something like Let's Encrypt
+    cert-manager.io/cluster-issuer: "private-ca-issuer"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - data-sanitization.integration
+    secretName: data-sanitization-ingress
+  rules:
+  - host: data-sanitization.integration
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: data-sanitization
+            port:
+              number: 80

@@ -140,7 +140,7 @@ spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - glaciation-tenant-console.integration
+    - spark-history-server.integration
     secretName: spark-history-server-ingress
   rules:
   - host: spark-history-server.integration
