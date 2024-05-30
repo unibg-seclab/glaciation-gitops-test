@@ -1,0 +1,89 @@
+replicaCount: 1
+
+image:
+  repository: mattlectic/spark-history-server
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+secret:
+  # Specifies whether the secret with S3 credentials should be created
+  create: false
+  # Annotations to add to the secret
+  annotations: {}
+  # The name of the secret to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: minio-credentials
+
+s3:
+  # S3 endpoint where to store the data sanitization artifacts
+  endpoint: minio.minio-tenant.svc.cluster.local
+  bucket: sanitization/spark-events
+
+volumes:
+- name: ca
+  configMap:
+    defaultMode: 422
+    name: ca-bundle
+
+volumeMounts:
+- name: ca-bundle
+  mountPath: /etc/ssl/certs/ca.crt
+  subPath: ca.crt
+  readOnly: true
+- name: ca-bundle
+  mountPath: /opt/java/openjdk/lib/security/cacerts
+  subPath: ca.jks
+  readOnly: true
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    # NOTE: To make sure the certificate is trusted by clients we should use
+    # something like Let's Encrypt
+    cert-manager.io/cluster-issuer: "private-ca-issuer"
+  hosts:
+  - host: spark-history-server.integration
+    paths:
+    - path: /
+      pathType: Prefix
+  tls:
+  - hosts:
+    - spark-history-server.integration
+    secretName: spark-history-server-ingress
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1024Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
