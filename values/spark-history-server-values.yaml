@@ -44,11 +44,11 @@ volumes:
     name: ca-bundle
 
 volumeMounts:
-- name: ca-bundle
+- name: ca
   mountPath: /etc/ssl/certs/ca.crt
   subPath: ca.crt
   readOnly: true
-- name: ca-bundle
+- name: ca
   mountPath: /opt/java/openjdk/lib/security/cacerts
   subPath: ca.jks
   readOnly: true
