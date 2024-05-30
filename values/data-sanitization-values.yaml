@@ -1,0 +1,48 @@
+secret:
+  create: true
+  name: minio-credentials
+
+s3:
+  # S3 endpoint where to store the data sanitization artifacts
+  endpoint: minio.minio-tenant.svc.cluster.local
+  # Path to the certificate of the S3 endpoint
+  certificate: /etc/ssl/certs/ca.crt
+  accessKeyId: minio
+  secretAccessKey: minio123
+
+volumes:
+- name: ca-bundle
+  configMap:
+    defaultMode: 422
+    name: ca-bundle
+
+volumeMounts:
+- mountPath: /etc/ssl/certs/ca.crt
+  subPath: ca.crt
+  name: ca-bundle
+  readOnly: true
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    # NOTE: To make sure the certificate is trusted by clients we should use
+    # something like Let's Encrypt
+    cert-manager.io/cluster-issuer: "private-ca-issuer"
+  hosts:
+  - host: data-sanitization.integration
+    paths:
+    - path: /
+      pathType: Prefix
+  tls:
+  - hosts:
+    - data-sanitization.integration
+    secretName: data-sanitization-ingress
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1024Mi
