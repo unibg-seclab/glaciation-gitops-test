@@ -10,7 +10,7 @@ spec:
   sources:
   - repoURL: https://glaciation-heu.github.io/spark-history-server
     chart: spark-history-server
-    targetRevision: 1.0.0
+    targetRevision: 1.0.1
     helm:
       valueFiles:
       - $values/values/spark-history-server-values.yaml
