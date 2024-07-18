@@ -86,4 +86,4 @@ spec:
         runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
-  backoffLimit: 1
+  backoffLimit: 5

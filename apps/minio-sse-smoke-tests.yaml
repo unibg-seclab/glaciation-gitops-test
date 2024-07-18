@@ -59,4 +59,4 @@ spec:
         configMap:
           defaultMode: 422
           name: ca-bundle
-  backoffLimit: 1
+  backoffLimit: 5

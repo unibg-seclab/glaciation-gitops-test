@@ -231,4 +231,4 @@ spec:
         configMap:
           defaultMode: 420
           name: kes-policy
-  backoffLimit: 1
+  backoffLimit: 5

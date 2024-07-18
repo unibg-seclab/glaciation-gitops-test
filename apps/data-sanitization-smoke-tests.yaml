@@ -149,4 +149,4 @@ spec:
         configMap:
           defaultMode: 422
           name: data-sanitization-config
-  backoffLimit: 1
+  backoffLimit: 5
