@@ -60,12 +60,14 @@ spec:
         - /bin/sh
         - -c
         - |
-          kubectl create -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/template.yaml;
-          kubectl create -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/constraint.yaml;
-          kubectl create -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_allowed.yaml;
-          ! kubectl create -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_container.yaml;
-          ! kubectl create -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_initcontainer.yaml;
-          ! kubectl create -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_both.yaml;
+          set -e # make sure the job fails if any instruction fails
+
+          kubectl apply -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/template.yaml;
+          kubectl apply -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/constraint.yaml;
+          kubectl apply -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_allowed.yaml;
+          ! kubectl apply -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_container.yaml;
+          ! kubectl apply -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_initcontainer.yaml;
+          ! kubectl apply -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_both.yaml;
           kubectl delete -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_allowed.yaml;
           ! kubectl delete -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_container.yaml;
           ! kubectl delete -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_initcontainer.yaml;

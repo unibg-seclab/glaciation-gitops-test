@@ -64,6 +64,8 @@ spec:
         - /bin/sh
         - -c
         - |
+          set -e # make sure the job fails if any instruction fails
+
           echo -e '[*] Install MinIO client and jq';
           curl https://dl.min.io/client/mc/release/linux-amd64/mc \
             --create-dirs \

@@ -16,6 +16,8 @@ spec:
         - /bin/sh
         - -c
         - |
+          set -e # make sure the job fails if any instruction fails
+
           source /tmp/config.env;
           set -x;  # enable printing the command before execution (in the sub-shell)
           mc alias set minio https://minio.minio-tenant.svc.cluster.local $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD;

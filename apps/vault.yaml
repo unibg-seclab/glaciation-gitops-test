@@ -118,6 +118,8 @@ spec:
         - /bin/sh
         - -c
         - |
+          set -e # make sure the job fails if any instruction fails
+
           function unseal {
               head -n $THRESHOLD /vault/cluster-keys |
               while read line; do
