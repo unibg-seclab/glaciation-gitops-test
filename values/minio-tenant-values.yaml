@@ -111,15 +111,7 @@ ingress:
     enabled: true
     ingressClassName: "nginx"
     annotations:
-      # NOTE: To make sure the certificate is trusted by clients we should use
-      # something like Let's Encrypt
-      cert-manager.io/cluster-issuer: "private-ca-issuer"
       nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-      nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    tls:
-    - hosts:
-      - glaciation-tenant.integration
-      secretName: minio-tenant-ingress
     host: glaciation-tenant.integration
     path: /
     pathType: Prefix
@@ -127,15 +119,7 @@ ingress:
     enabled: true
     ingressClassName: "nginx"
     annotations:
-      # NOTE: To make sure the certificate is trusted by clients we should use
-      # something like Let's Encrypt
-      cert-manager.io/cluster-issuer: "private-ca-issuer"
       nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-      nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    tls:
-    - hosts:
-      - glaciation-tenant-console.integration
-      secretName: minio-tenant-console-ingress
     host: glaciation-tenant-console.integration
     path: /
     pathType: Prefix
