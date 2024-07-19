@@ -12,9 +12,25 @@ spec:
     repoURL: https://sighupio.github.io/gatekeeper-policy-manager
     targetRevision: 0.10.0
     helm:
-      parameters:
-        - name: config.secretKey
-          value: supersecuresecretkey
+      valuesObject:
+        config:
+          secretKey: supersecuresecretkey
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          annotations:
+            # NOTE: To make sure the certificate is trusted by clients we should use
+            # something like Let's Encrypt
+            cert-manager.io/cluster-issuer: "private-ca-issuer"
+          tls:
+          - hosts:
+            - gpm.integration
+            secretName: gpm-ingress
+          hosts:
+          - host: gpm.integration
+            paths:
+            - /
+            pathType: Prefix
   destination:
     server: https://kubernetes.default.svc
     namespace: gatekeeper-system
