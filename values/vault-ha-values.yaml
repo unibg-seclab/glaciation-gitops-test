@@ -48,6 +48,7 @@ server:
     ingressClassName: nginx
     annotations:
       nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
     hosts:
     - host: vault.integration
     activeService: false
