@@ -18,7 +18,7 @@ spec:
       valueFiles:
       - $values/values/minio-tenant-values.yaml
   - repoURL: 'https://github.com/unibg-seclab/glaciation-gitops-test.git'
-    targetRevision: main
+    targetRevision: http
     ref: values
   destination:
     namespace: minio-tenant
