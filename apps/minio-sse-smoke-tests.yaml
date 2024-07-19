@@ -21,7 +21,7 @@ spec:
           source /tmp/config.env;
           set -x;  # enable printing the command before execution (in the sub-shell)
           mc alias set minio https://minio.minio-tenant.svc.cluster.local $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD;
-          mc mb minio/test-encrypted-bucket;
+          mc mb -p minio/test-encrypted-bucket;
           mc encrypt set sse-kms encryption-key minio/test-encrypted-bucket;
           mc ls minio;
           echo "This is a line of text" > /tmp/test-object;

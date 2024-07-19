@@ -78,8 +78,8 @@ spec:
           export PATH=$PATH:/tmp/bin/;
           echo -e '\n[*] Setup object store for the sanitization process';
           mc alias set minio https://minio.minio-tenant.svc.cluster.local $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY;
-          mc mb minio/sanitization/dataset;
-          mc mb minio/sanitization/anonymized;
+          mc mb -p minio/sanitization/dataset;
+          mc mb -p minio/sanitization/anonymized;
           curl --output /tmp/adults.csv https://raw.githubusercontent.com/mosaicrown/mondrian/k8s/distributed/dataset/adults.csv
           mc cp /tmp/adults.csv minio/sanitization/dataset/;
           echo -e '\n\n[*] Peak into the contents of the dataset'
