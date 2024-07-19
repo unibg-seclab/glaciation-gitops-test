@@ -18,13 +18,13 @@ metadata:
 rules:
 - apiGroups: ["templates.gatekeeper.sh"]
   resources: ["constrainttemplates"]
-  verbs: ["create", "delete", "get", "patch", "update"]
+  verbs: ["create", "delete"]
 - apiGroups: ["constraints.gatekeeper.sh"]
   resources: ["k8sallowedrepos"]
-  verbs: ["create", "delete", "get", "patch", "update"]
+  verbs: ["create", "delete"]
 - apiGroups: [""] # "" indicates the core API group
   resources: ["pods"]
-  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+  verbs: ["create", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -60,20 +60,41 @@ spec:
         - /bin/sh
         - -c
         - |
-          set -e # make sure the job fails if any instruction fails
+          # Check status of the Gatekeeper service
+          (
+            set -e; # make sure the job fails if any instruction fails
 
-          kubectl apply -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/template.yaml;
-          kubectl apply -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/constraint.yaml;
-          kubectl apply -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_allowed.yaml;
-          ! kubectl apply -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_container.yaml;
-          ! kubectl apply -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_initcontainer.yaml;
-          ! kubectl apply -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_both.yaml;
-          kubectl delete -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_allowed.yaml;
-          ! kubectl delete -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_container.yaml;
-          ! kubectl delete -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_initcontainer.yaml;
-          ! kubectl delete -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_both.yaml;
+            # Some of the following commands are meant to fail to prove the
+            # successful enforcement of the policy. With the suffix '&& exit 1'
+            # we force to exit with an error status whenever these commands are
+            # executed successfully.
+            # NOTE: This is not the same as the ! operator.
+
+            kubectl create -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/template.yaml;
+            kubectl create -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/constraint.yaml;
+            kubectl create -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_allowed.yaml -n default;
+            kubectl create -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_container.yaml -n default && exit 1;
+            kubectl create -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_initcontainer.yaml -n default && exit 1;
+            kubectl create -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_both.yaml -n default && exit 1;
+
+            # Overwrite last command exit status with success. Indeed, if we
+            # get here the test has succeeded
+            exit 0
+          )
+
+          # Store exit status of the subshell (i.e., state of the test)
+          exit_code=$?
+
+          # Restore cluster in a clean state (these always run even in case of errors above)
+          kubectl delete -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_allowed.yaml -n default;
+          kubectl delete -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_container.yaml -n default;
+          kubectl delete -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_initcontainer.yaml -n default;
+          kubectl delete -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/example_disallowed_both.yaml -n default;
           kubectl delete -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/constraint.yaml;
           kubectl delete -f https://raw.githubusercontent.com/unibg-seclab/glaciation-gitops-test/main/resources/template.yaml
+
+          # Return the state of smoke test
+          exit $exit_code
         securityContext:
           privileged: false
           allowPrivilegeEscalation: false
