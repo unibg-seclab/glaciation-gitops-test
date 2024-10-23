@@ -1,0 +1,167 @@
+apiVersion: mutations.gatekeeper.sh/v1
+kind: Assign
+metadata:
+  name: add-container-resource-cpu-requests
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  applyTo:
+  - groups: [""]
+    kinds: ["Pod"]
+    versions: ["v1"]
+  match:
+    excludedNamespaces: ["kube-*"]
+  location: spec.containers[name:*].resources.requests.cpu
+  parameters:
+    pathTests:
+    - subPath: spec.containers[name:*].resources.requests.cpu
+      condition: MustNotExist
+    assign:
+      value: "100m"
+---
+apiVersion: mutations.gatekeeper.sh/v1
+kind: Assign
+metadata:
+  name: add-container-resource-memory-requests
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  applyTo:
+  - groups: [""]
+    kinds: ["Pod"]
+    versions: ["v1"]
+  match:
+    excludedNamespaces: ["kube-*"]
+  location: spec.containers[name:*].resources.requests.memory
+  parameters:
+    pathTests:
+    - subPath: spec.containers[name:*].resources.requests.memory
+      condition: MustNotExist
+    assign:
+      value: "256Mi"
+---
+apiVersion: mutations.gatekeeper.sh/v1
+kind: Assign
+metadata:
+  name: add-container-resource-cpu-limits
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  applyTo:
+  - groups: [""]
+    kinds: ["Pod"]
+    versions: ["v1"]
+  match:
+    excludedNamespaces: ["kube-*"]
+  location: spec.containers[name:*].resources.limits.cpu
+  parameters:
+    pathTests:
+    - subPath: spec.containers[name:*].resources.limits.cpu
+      condition: MustNotExist
+    assign:
+      value: "1"
+---
+apiVersion: mutations.gatekeeper.sh/v1
+kind: Assign
+metadata:
+  name: add-container-resource-memory-limits
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  applyTo:
+  - groups: [""]
+    kinds: ["Pod"]
+    versions: ["v1"]
+  match:
+    excludedNamespaces: ["kube-*"]
+  location: spec.containers[name:*].resources.limits.memory
+  parameters:
+    pathTests:
+    - subPath: spec.containers[name:*].resources.limits.memory
+      condition: MustNotExist
+    assign:
+      value: "4Gi"
+---
+apiVersion: mutations.gatekeeper.sh/v1
+kind: Assign
+metadata:
+  name: add-initcontainer-resource-cpu-requests
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  applyTo:
+  - groups: [""]
+    kinds: ["Pod"]
+    versions: ["v1"]
+  match:
+    excludedNamespaces: ["kube-*"]
+  location: spec.initContainers[name:*].resources.requests.cpu
+  parameters:
+    pathTests:
+    - subPath: spec.initContainers[name:*].resources.requests.cpu
+      condition: MustNotExist
+    assign:
+      value: "100m"
+---
+apiVersion: mutations.gatekeeper.sh/v1
+kind: Assign
+metadata:
+  name: add-initcontainer-resource-memory-requests
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  applyTo:
+  - groups: [""]
+    kinds: ["Pod"]
+    versions: ["v1"]
+  match:
+    excludedNamespaces: ["kube-*"]
+  location: spec.initContainers[name:*].resources.requests.memory
+  parameters:
+    pathTests:
+    - subPath: spec.initContainers[name:*].resources.requests.memory
+      condition: MustNotExist
+    assign:
+      value: "256Mi"
+---
+apiVersion: mutations.gatekeeper.sh/v1
+kind: Assign
+metadata:
+  name: add-initcontainer-resource-cpu-limits
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  applyTo:
+  - groups: [""]
+    kinds: ["Pod"]
+    versions: ["v1"]
+  match:
+    excludedNamespaces: ["kube-*"]
+  location: spec.initContainers[name:*].resources.limits.cpu
+  parameters:
+    pathTests:
+    - subPath: spec.initContainers[name:*].resources.limits.cpu
+      condition: MustNotExist
+    assign:
+      value: "1"
+---
+apiVersion: mutations.gatekeeper.sh/v1
+kind: Assign
+metadata:
+  name: add-initcontainer-resource-memory-limits
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  applyTo:
+  - groups: [""]
+    kinds: ["Pod"]
+    versions: ["v1"]
+  match:
+    excludedNamespaces: ["kube-*"]
+  location: spec.initContainers[name:*].resources.limits.memory
+  parameters:
+    pathTests:
+    - subPath: spec.initContainers[name:*].resources.limits.memory
+      condition: MustNotExist
+    assign:
+      value: "4Gi"
