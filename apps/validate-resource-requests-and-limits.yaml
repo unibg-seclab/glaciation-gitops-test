@@ -544,7 +544,7 @@ spec:
     kinds:
       - apiGroups: [""]
         kinds: ["Pod"]
-    excludedNamespaces: ["kube-*"]
+    excludedNamespaces: ["kube-*", "argocd"]
   parameters:
     cpu: "1"
     memory: "4Gi"
@@ -561,7 +561,7 @@ spec:
     kinds:
       - apiGroups: [""]
         kinds: ["Pod"]
-    excludedNamespaces: ["kube-*"]
+    excludedNamespaces: ["kube-*", "argocd"]
   parameters:
     cpu: "2"
     memory: "8Gi"
