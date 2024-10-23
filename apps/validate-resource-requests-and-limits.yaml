@@ -3,6 +3,7 @@ kind: ConstraintTemplate
 metadata:
   name: k8scontainerrequests
   annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
     argocd.argoproj.io/sync-wave: "-10"
     metadata.gatekeeper.sh/title: "Container Requests"
     metadata.gatekeeper.sh/version: 1.0.1
@@ -269,6 +270,7 @@ kind: ConstraintTemplate
 metadata:
   name: k8scontainerlimits
   annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
     argocd.argoproj.io/sync-wave: "-10"
     metadata.gatekeeper.sh/title: "Container Limits"
     metadata.gatekeeper.sh/version: 1.0.1
@@ -535,6 +537,7 @@ kind: K8sContainerRequests
 metadata:
   name: container-must-have-requests
   annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
     argocd.argoproj.io/sync-wave: "-10"
 spec:
   match:
@@ -551,6 +554,7 @@ kind: K8sContainerLimits
 metadata:
   name: container-must-have-limits
   annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
     argocd.argoproj.io/sync-wave: "-10"
 spec:
   match:
