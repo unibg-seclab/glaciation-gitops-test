@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: set-node-labels
+  namespace: gatekeeper-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: set-node-labels
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["nodes"]
+  verbs: ["get", "list", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: set-node-labels
+  namespace: gatekeeper-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+subjects:
+- kind: ServiceAccount
+  name: set-node-labels
+  namespace: gatekeeper-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: set-node-labels
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: set-node-labels
+  namespace: gatekeeper-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  backoffLimit: 5
+  ttlSecondsAfterFinished: 60
+  template:
+    spec:
+      containers:
+      - name: kubectl
+        image: bitnami/kubectl:1.30
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e # make sure the job fails if any instruction fails
+
+          # Get nodes
+          nodes=$(kubectl get nodes -o name)
+          for node in ${nodes}
+          do
+            # Set node labels
+            kubectl label ${node} uc1-tenant=true uc2-tenant=true --overwrite
+          done
+        resources:
+          limits:
+            cpu: 100m
+            memory: 200Mi
+          requests:
+            cpu: 50m
+            memory: 100Mi
+        securityContext:
+          privileged: false
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+      restartPolicy: Never
+      serviceAccountName: set-node-labels
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
