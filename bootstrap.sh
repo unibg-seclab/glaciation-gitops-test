@@ -29,5 +29,5 @@ PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath=
 echo -e "\nServing ArgoCD at http://$NODE_IP:$NODE_PORT"
 echo "Credentials: user=admin, password=$PASSWORD"
 
-echo -e "\n[*] Install ArgoCD"
+echo -e "\n[*] Install ArgoCD application"
 kubectl create -f bootstrap.yaml
