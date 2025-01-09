@@ -95,7 +95,8 @@ spec:
           );
           echo -e '\nWaiting for the completion of the sanitization job...';
           STATUS="UNKNOWN";
-          while [ "$STATUS" != "COMPLETED" ]; do
+          while [ "$STATUS" != "COMPLETED" ] && [ "$STATUS" != "FAILED" ] && \
+                [ "$STATUS" != "SUBMISSION_FAILED" ]; do
               sleep 5;
               STATUS=$(
                   curl \
