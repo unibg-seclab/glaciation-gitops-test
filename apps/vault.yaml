@@ -96,15 +96,22 @@ data:
       capabilities = [ "list", "delete" ]
     }
 ---
-apiVersion: batch/v1
-kind: Job
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: init-vault-cluster
+  name: auto-unseal-vault-cluster
   namespace: vault
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auto-unseal-vault-cluster
   template:
+    metadata:
+      labels:
+        app: auto-unseal-vault-cluster
     spec:
       containers:
       - name: vault
@@ -118,7 +125,7 @@ spec:
         - /bin/sh
         - -c
         - |
-          set -e # make sure the job fails if any instruction fails
+          set -e # make sure the service fails if any instruction fails
 
           function unseal {
               head -n $THRESHOLD /vault/cluster-keys |
@@ -130,60 +137,77 @@ spec:
           }
 
           echo '[*] Initialize HA Vault cluster'
-          # Wait for the startup of the Vault pods
-          sleep 30 # it does the job without requiring to create an ad hoc image
-          # TODO: Persist PGP encrypted Vault unseal keys somewhere outside the cluster
-          vault operator init \
-            -address=https://vault-0.vault-internal:8200 \
-            -key-shares=$SHARES \
-            -key-threshold=$THRESHOLD \
-            -format=json > /vault/response.json
-          # Extract unseal keys from the JSON response
-          awk '/"unseal_keys_b64": \[/{flag=1;next}/\]/{flag=0}flag' /vault/response.json | sed -n 's/\s*"\(.*\)".*/\1/p' > /vault/cluster-keys
-          unseal vault-0
-          vault operator raft join \
-            -address=https://vault-1.vault-internal:8200 \
-            -leader-ca-cert="$(cat /vault/userconfig/vault-tls/ca.crt)" \
-            -leader-client-cert="$(cat /vault/userconfig/vault-tls/tls.crt)" \
-            -leader-client-key="$(cat /vault/userconfig/vault-tls/tls.key)" \
-            https://vault-0.vault-internal:8200
-          unseal vault-1
-          vault operator raft join \
-            -address=https://vault-2.vault-internal:8200 \
-            -leader-ca-cert="$(cat /vault/userconfig/vault-tls/ca.crt)" \
-            -leader-client-cert="$(cat /vault/userconfig/vault-tls/tls.crt)" \
-            -leader-client-key="$(cat /vault/userconfig/vault-tls/tls.key)" \
-            https://vault-0.vault-internal:8200
-          unseal vault-2
-          echo -e '\n[*] Setup HA Vault cluster for integration with MinIO'
-          VAULT_ROOT_TOKEN=$(sed -n 's/\s*"root_token": "\(.*\)".*/\1/p' /vault/response.json)
-          vault login \
-            -address=https://vault-0.vault-internal:8200 \
-            $VAULT_ROOT_TOKEN
-          vault secrets enable \
-            -address=https://vault-0.vault-internal:8200 \
-            -version=2 \
-            kv
-          vault policy write \
-            -address=https://vault-0.vault-internal:8200 \
-            kes-policy /minio/kes/kes-policy.hcl
-          vault auth enable \
-            -address=https://vault-0.vault-internal:8200 \
-            kubernetes
-          vault write \
-            -address=https://vault-0.vault-internal:8200 \
-            auth/kubernetes/config \
-            token_reviewer_jwt="$(cat /minio/kes/service-account/token)" \
-            kubernetes_host="https://kubernetes.default.svc.cluster.local" \
-            kubernetes_ca_cert="$(cat /minio/kes/service-account/ca.crt)" \
-            issuer="https://kubernetes.default.svc.cluster.local"
-          vault write \
-            -address=https://vault-0.vault-internal:8200 \
-            auth/kubernetes/role/minio-kes \
-            bound_service_account_names=minio-kes \
-            bound_service_account_namespaces=minio-tenant \
-            policies=kes-policy \
-            ttl=1h
+          
+          # Loop infinitely
+          while :
+          do
+              # Wait for the startup of the Vault pods / delay before next
+              # status check
+              sleep 30 # it does the job without requiring to create an ad hoc image
+
+              if ! vault operator init -address=https://vault-0.vault-internal:8200 -status; then
+                  # Setup HA Vault cluster leader
+                  # TODO: Persist PGP encrypted Vault unseal keys somewhere outside the cluster
+                  vault operator init \
+                    -address=https://vault-0.vault-internal:8200 \
+                    -key-shares=$SHARES \
+                    -key-threshold=$THRESHOLD \
+                    -format=json > /vault/response.json
+
+                  # Extract unseal keys from the JSON response
+                  awk '/"unseal_keys_b64": \[/{flag=1;next}/\]/{flag=0}flag' /vault/response.json | sed -n 's/\s*"\(.*\)".*/\1/p' > /vault/cluster-keys
+              fi
+
+              unseal vault-0
+
+              # Setup HA Vault cluster follower (vault-1)
+              vault operator raft join \
+                -address=https://vault-1.vault-internal:8200 \
+                -leader-ca-cert="$(cat /vault/userconfig/vault-tls/ca.crt)" \
+                -leader-client-cert="$(cat /vault/userconfig/vault-tls/tls.crt)" \
+                -leader-client-key="$(cat /vault/userconfig/vault-tls/tls.key)" \
+                https://vault-0.vault-internal:8200
+              unseal vault-1
+
+              # Setup HA Vault cluster follower (vault-2)
+              vault operator raft join \
+                -address=https://vault-2.vault-internal:8200 \
+                -leader-ca-cert="$(cat /vault/userconfig/vault-tls/ca.crt)" \
+                -leader-client-cert="$(cat /vault/userconfig/vault-tls/tls.crt)" \
+                -leader-client-key="$(cat /vault/userconfig/vault-tls/tls.key)" \
+                https://vault-0.vault-internal:8200
+              unseal vault-2
+
+              echo -e '\n[*] Setup HA Vault cluster for integration with MinIO'
+              VAULT_ROOT_TOKEN=$(sed -n 's/\s*"root_token": "\(.*\)".*/\1/p' /vault/response.json)
+              vault login \
+                -address=https://vault-0.vault-internal:8200 \
+                $VAULT_ROOT_TOKEN
+              vault secrets enable \
+                -address=https://vault-0.vault-internal:8200 \
+                -version=2 \
+                kv
+              vault policy write \
+                -address=https://vault-0.vault-internal:8200 \
+                kes-policy /minio/kes/kes-policy.hcl
+              vault auth enable \
+                -address=https://vault-0.vault-internal:8200 \
+                kubernetes
+              vault write \
+                -address=https://vault-0.vault-internal:8200 \
+                auth/kubernetes/config \
+                token_reviewer_jwt="$(cat /minio/kes/service-account/token)" \
+                kubernetes_host="https://kubernetes.default.svc.cluster.local" \
+                kubernetes_ca_cert="$(cat /minio/kes/service-account/ca.crt)" \
+                issuer="https://kubernetes.default.svc.cluster.local"
+              vault write \
+                -address=https://vault-0.vault-internal:8200 \
+                auth/kubernetes/role/minio-kes \
+                bound_service_account_names=minio-kes \
+                bound_service_account_namespaces=minio-tenant \
+                policies=kes-policy \
+                ttl=1h
+          done
         securityContext:
           runAsUser: 100
           runAsGroup: 1000
@@ -207,7 +231,7 @@ spec:
           subPath: kes-policy.hcl
           name: kes-policy
           readOnly: true
-      restartPolicy: Never
+      restartPolicy: Always
       securityContext:
         runAsUser: 100
         runAsGroup: 1000
@@ -231,4 +255,3 @@ spec:
         configMap:
           defaultMode: 420
           name: kes-policy
-  backoffLimit: 5
