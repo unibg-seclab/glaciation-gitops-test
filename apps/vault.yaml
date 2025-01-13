@@ -125,8 +125,6 @@ spec:
         - /bin/sh
         - -c
         - |
-          set -e # make sure the service fails if any instruction fails
-
           function unseal {
               head -n $THRESHOLD /vault/cluster-keys |
               while read line; do
