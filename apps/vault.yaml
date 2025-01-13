@@ -178,35 +178,35 @@ spec:
                 https://vault-0.vault-internal:8200
               unseal vault-2
 
-              echo -e '\n[*] Setup HA Vault cluster for integration with MinIO'
-              VAULT_ROOT_TOKEN=$(sed -n 's/\s*"root_token": "\(.*\)".*/\1/p' /vault/response.json)
-              vault login \
-                -address=https://vault-0.vault-internal:8200 \
-                $VAULT_ROOT_TOKEN
-              vault secrets enable \
-                -address=https://vault-0.vault-internal:8200 \
-                -version=2 \
-                kv
-              vault policy write \
-                -address=https://vault-0.vault-internal:8200 \
-                kes-policy /minio/kes/kes-policy.hcl
-              vault auth enable \
-                -address=https://vault-0.vault-internal:8200 \
-                kubernetes
-              vault write \
-                -address=https://vault-0.vault-internal:8200 \
-                auth/kubernetes/config \
-                token_reviewer_jwt="$(cat /minio/kes/service-account/token)" \
-                kubernetes_host="https://kubernetes.default.svc.cluster.local" \
-                kubernetes_ca_cert="$(cat /minio/kes/service-account/ca.crt)" \
-                issuer="https://kubernetes.default.svc.cluster.local"
-              vault write \
-                -address=https://vault-0.vault-internal:8200 \
-                auth/kubernetes/role/minio-kes \
-                bound_service_account_names=minio-kes \
-                bound_service_account_namespaces=minio-tenant \
-                policies=kes-policy \
-                ttl=1h
+              # echo -e '\n[*] Setup HA Vault cluster for integration with MinIO'
+              # VAULT_ROOT_TOKEN=$(sed -n 's/\s*"root_token": "\(.*\)".*/\1/p' /vault/response.json)
+              # vault login \
+              #   -address=https://vault-0.vault-internal:8200 \
+              #   $VAULT_ROOT_TOKEN
+              # vault secrets enable \
+              #   -address=https://vault-0.vault-internal:8200 \
+              #   -version=2 \
+              #   kv
+              # vault policy write \
+              #   -address=https://vault-0.vault-internal:8200 \
+              #   kes-policy /minio/kes/kes-policy.hcl
+              # vault auth enable \
+              #   -address=https://vault-0.vault-internal:8200 \
+              #   kubernetes
+              # vault write \
+              #   -address=https://vault-0.vault-internal:8200 \
+              #   auth/kubernetes/config \
+              #   token_reviewer_jwt="$(cat /minio/kes/service-account/token)" \
+              #   kubernetes_host="https://kubernetes.default.svc.cluster.local" \
+              #   kubernetes_ca_cert="$(cat /minio/kes/service-account/ca.crt)" \
+              #   issuer="https://kubernetes.default.svc.cluster.local"
+              # vault write \
+              #   -address=https://vault-0.vault-internal:8200 \
+              #   auth/kubernetes/role/minio-kes \
+              #   bound_service_account_names=minio-kes \
+              #   bound_service_account_namespaces=minio-tenant \
+              #   policies=kes-policy \
+              #   ttl=1h
           done
         securityContext:
           runAsUser: 100
@@ -231,7 +231,6 @@ spec:
           subPath: kes-policy.hcl
           name: kes-policy
           readOnly: true
-      restartPolicy: Always
       securityContext:
         runAsUser: 100
         runAsGroup: 1000
