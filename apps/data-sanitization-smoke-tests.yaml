@@ -66,6 +66,16 @@ spec:
         - |
           set -e # make sure the job fails if any instruction fails
 
+          function cleanup {
+              echo -e '\n[*] Delete sanitization job';
+              curl \
+                --silent \
+                --request DELETE \
+                --header 'Content-Type: application/json' \
+                --output /dev/null \
+                http://data-sanitization.spark-app.svc.cluster.local/api/v1alpha1/job/$1
+          }
+
           echo -e '[*] Install MinIO client and jq';
           curl https://dl.min.io/client/mc/release/linux-amd64/mc \
             --create-dirs \
@@ -95,8 +105,12 @@ spec:
           );
           echo -e '\nWaiting for the completion of the sanitization job...';
           STATUS="UNKNOWN";
-          while [ "$STATUS" != "COMPLETED" ] && [ "$STATUS" != "FAILED" ] && \
-                [ "$STATUS" != "SUBMISSION_FAILED" ]; do
+          while [ "$STATUS" != "COMPLETED" ]; do
+              if [ "$STATUS" == "FAILED" ] || [ "$STATUS" == "SUBMISSION_FAILED" ]; then
+                  cleanup $REQ_ID
+                  exit 1 # exit with an error code if the sanitization job fails
+              fi
+
               sleep 5;
               STATUS=$(
                   curl \
@@ -112,13 +126,7 @@ spec:
           mc ls minio/sanitization/anonymized/adults.csv;
           PART=$(mc ls --json minio/sanitization/anonymized/adults.csv | jq -r '.key | select(startswith("part-00000-")) | select(endswith(".csv"))');
           mc head minio/sanitization/anonymized/adults.csv/$PART;
-          echo -e '\n[*] Delete sanitization job';
-          curl \
-            --silent \
-            --request DELETE \
-            --header 'Content-Type: application/json' \
-            --output /dev/null \
-            http://data-sanitization.spark-app.svc.cluster.local/api/v1alpha1/job/$REQ_ID
+          cleanup $REQ_ID
         securityContext:
           privileged: false
           runAsUser: 100
