@@ -155,8 +155,10 @@ spec:
                     -key-threshold=$THRESHOLD \
                     -format=json > /vault/response.json
 
-                  # Extract unseal keys from the JSON response
-                  awk '/"unseal_keys_b64": \[/{flag=1;next}/\]/{flag=0}flag' /vault/response.json | sed -n 's/\s*"\(.*\)".*/\1/p' > /vault/cluster-keys
+                  if [ -s /vault/response.json ]; then
+                      # Extract unseal keys from the JSON response
+                      awk '/"unseal_keys_b64": \[/{flag=1;next}/\]/{flag=0}flag' /vault/response.json | sed -n 's/\s*"\(.*\)".*/\1/p' > /vault/cluster-keys
+                  fi
               fi
 
               unseal vault-0
