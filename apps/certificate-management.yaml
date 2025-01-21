@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cert-manager
+  name: certificate-management
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "-9"
@@ -10,16 +10,11 @@ metadata:
 spec:
   project: default
   source:
-    chart: cert-manager
-    repoURL: https://charts.jetstack.io
-    targetRevision: v1.14.5
-    helm:
-      parameters:
-      - name: "installCRDs"
-        value: "true"
-        forceString: true # ensures that value is treated as a string
+    repoURL: 'https://glaciation-heu.github.io/security/helm-charts'
+    chart: certificate-management
+    targetRevision: 1.0.*
   destination:
-    server: "https://kubernetes.default.svc"
+    server: 'https://kubernetes.default.svc'
     namespace: cert-manager
   syncPolicy:
     automated:
