@@ -14,6 +14,63 @@ spec:
     repoURL: 'https://glaciation-heu.github.io/security/helm-charts'
     chart: data-wrapping
     targetRevision: 1.0.*
+    helm:
+      valuesObject:
+        tenant:
+          ingress:
+            api:
+              enabled: true
+              ingressClassName: "nginx"
+              annotations:
+                # NOTE: To make sure the certificate is trusted by clients we should use
+                # something like Let's Encrypt
+                cert-manager.io/cluster-issuer: "private-ca-issuer"
+                ingress.kubernetes.io/ssl-redirect: "true"
+                nginx.org/redirect-to-https: "true"
+                nginx.org/ssl-services: "minio"
+              tls:
+              - hosts:
+                - glaciation-tenant.integration
+                secretName: minio-tenant-ingress
+              host: glaciation-tenant.integration
+              path: /
+              pathType: Prefix
+            console:
+              enabled: true
+              ingressClassName: "nginx"
+              annotations:
+                # NOTE: To make sure the certificate is trusted by clients we should use
+                # something like Let's Encrypt
+                cert-manager.io/cluster-issuer: "private-ca-issuer"
+                ingress.kubernetes.io/ssl-redirect: "true"
+                nginx.org/redirect-to-https: "true"
+                nginx.org/ssl-services: "glaciation-console"
+              tls:
+              - hosts:
+                - glaciation-tenant-console.integration
+                secretName: minio-tenant-console-ingress
+              host: glaciation-tenant-console.integration
+              path: /
+              pathType: Prefix
+        vault:
+          server:
+            ingress:
+              enabled: true
+              ingressClassName: nginx
+              annotations:
+                # NOTE: To make sure the certificate is trusted by clients we should use
+                # something like Let's Encrypt
+                cert-manager.io/cluster-issuer: "private-ca-issuer"
+                ingress.kubernetes.io/ssl-redirect: "true"
+                nginx.org/redirect-to-https: "true"
+                nginx.org/ssl-services: "data-wrapping-vault"
+              tls:
+              - hosts:
+                - vault.integration
+                secretName: vault-ingress
+              hosts:
+              - host: vault.integration
+              activeService: false
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: data-wrapping

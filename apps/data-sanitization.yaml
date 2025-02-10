@@ -11,6 +11,42 @@ spec:
     repoURL: 'https://glaciation-heu.github.io/security/helm-charts'
     chart: data-sanitization
     targetRevision: 1.0.*
+    helm:
+      valuesObject:
+        data-sanitization:
+          ingress:
+            enabled: true
+            className: nginx
+            annotations:
+              # NOTE: To make sure the certificate is trusted by clients we should use
+              # something like Let's Encrypt
+              cert-manager.io/cluster-issuer: "private-ca-issuer"
+            hosts:
+            - host: data-sanitization.integration
+              paths:
+              - path: /
+                pathType: Prefix
+            tls:
+            - hosts:
+              - data-sanitization.integration
+              secretName: data-sanitization-ingress
+        spark-history-server:
+          ingress:
+            enabled: true
+            className: nginx
+            annotations:
+              # NOTE: To make sure the certificate is trusted by clients we should use
+              # something like Let's Encrypt
+              cert-manager.io/cluster-issuer: "private-ca-issuer"
+            hosts:
+            - host: spark-history-server.integration
+              paths:
+              - path: /
+                pathType: Prefix
+            tls:
+            - hosts:
+              - spark-history-server.integration
+              secretName: spark-history-server-ingress
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: spark-operator
