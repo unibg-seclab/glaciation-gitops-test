@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: 'https://github.com/unibg-seclab/glaciation-gitops-test.git'
     path: apps
-    targetRevision: main
+    targetRevision: dev
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: glaciation-test

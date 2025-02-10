@@ -10,7 +10,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://glaciation-heu.github.io/security/helm-charts'
+    repoURL: 'https://glaciation-heu.github.io/security/dev'
     chart: admission-control
     targetRevision: 1.0.*
   destination:
