@@ -17,6 +17,43 @@ spec:
     helm:
       valuesObject:
         tenant:
+          tenant:
+            pools:
+            - name: pool
+              # Number of MinIO Tenant pods
+              servers: 2
+              # Number of volumes per MinIO Tenant pod
+              volumesPerServer: 2
+              # Size of each volume
+              size: 1Gi
+              # Storage class of the volumes
+              storageClassName: local-path
+              # Minimum and maximum resources requested for each pod
+              resources:
+                requests:
+                  cpu: 1
+                  memory: 2Gi
+                limits:
+                  cpu: 2
+                  memory: 4Gi
+              # Security context of the pods
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                fsGroup: 1000
+                fsGroupChangePolicy: "OnRootMismatch"
+                runAsNonRoot: true
+              # Security context of the containers
+              containerSecurityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                runAsNonRoot: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                seccompProfile:
+                  type: RuntimeDefault
           ingress:
             api:
               enabled: true
@@ -50,6 +87,12 @@ spec:
               pathType: Prefix
         vault:
           server:
+            dataStorage:
+              size: 1Gi
+              storageClass: local-path
+            auditStorage:
+              size: 1Gi
+              storageClass: local-path
             ingress:
               enabled: true
               ingressClassName: nginx
