@@ -15,3 +15,13 @@ configs:
             end
           end
           return hs
+  params:
+    server.insecure: true
+
+server:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hostname: argocd.integration
+    path: /
+    pathType: Prefix
