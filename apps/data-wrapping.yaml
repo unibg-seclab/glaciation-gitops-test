@@ -63,6 +63,7 @@ spec:
                 # something like Let's Encrypt
                 cert-manager.io/cluster-issuer: "private-ca-issuer"
                 nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+                nginx.ingress.kubernetes.io/proxy-body-size: 1g
               tls:
               - hosts:
                 - glaciation-tenant.integration
@@ -78,6 +79,7 @@ spec:
                 # something like Let's Encrypt
                 cert-manager.io/cluster-issuer: "private-ca-issuer"
                 nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+                nginx.ingress.kubernetes.io/proxy-body-size: 1g
               tls:
               - hosts:
                 - glaciation-tenant-console.integration
